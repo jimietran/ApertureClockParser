@@ -1,6 +1,5 @@
 import decimal
 import json
-from collections import defaultdict
 from datetime import datetime, timedelta
 
 
@@ -51,7 +50,7 @@ def split_into_separate_days(start_date, end_date):
         return [(start_date, end_date)]
 
 
-class apertureClockParser:
+class ApertureClockParser:
     def __init__(self, input_file, output_file):
         with open(input_file) as file:
             self.data = json.load(file)
@@ -61,29 +60,31 @@ class apertureClockParser:
         employees = {}
         for employee in self.data['employees']:
             employees[employee["id"]] = {"employee_id": employee["id"],
-                                         "first_name": employee["first_name"],
-                                         "last_name": employee["last_name"],
+                                         "first_name": employee["first_name"] if employee.get("first_name") else None,
+                                         "last_name": employee["last_name"] if employee.get("last_name") else None,
                                          "labour": []}
         for clock in self.data['clocks']:
-            start_date = convert_datetime(clock["clock_in_datetime"])
-            end_date = convert_datetime(clock["clock_out_datetime"])
-            days = split_into_separate_days(start_date, end_date)
-            for start, end in days:
-                labour_date = start.strftime("%Y-%m-%d")
-                total_hours = calculate_hour_difference(start, end)
-                hours_per_period = calculate_hours_per_time_period(start, end)
-                labour_by_time_period = {"period1": hours_per_period["Morning"],
-                                         "period2": hours_per_period["Afternoon"],
-                                         "period3": hours_per_period["Evening"],
-                                         "period4": hours_per_period["Late Night"]}
-                employees[clock["employee_id"]]["labour"].append({"date": labour_date,
-                                                                  "total": total_hours,
-                                                                  "labour_by_time_period": labour_by_time_period})
+            if clock.get("clock_in_datetime") and clock.get("clock_out_datetime"):
+                start_date = convert_datetime(clock["clock_in_datetime"])
+                end_date = convert_datetime(clock["clock_out_datetime"])
+                if start_date < end_date:
+                    days = split_into_separate_days(start_date, end_date)
+                    for start, end in days:
+                        labour_date = start.strftime("%Y-%m-%d")
+                        total_hours = calculate_hour_difference(start, end)
+                        hours_per_period = calculate_hours_per_time_period(start, end)
+                        labour_by_time_period = {"period1": hours_per_period["Morning"],
+                                                 "period2": hours_per_period["Afternoon"],
+                                                 "period3": hours_per_period["Evening"],
+                                                 "period4": hours_per_period["Late Night"]}
+                        employees[clock["employee_id"]]["labour"].append({"date": labour_date,
+                                                                          "total": total_hours,
+                                                                          "labour_by_time_period": labour_by_time_period})
 
         with open(self.output_file, "w") as file:
             json.dump(list(employees.values()), file)
         return
 
 
-parser = apertureClockParser("clocks.json", "labour_hours.json")
+parser = ApertureClockParser("clocks.json", "labour_hours.json")
 parser.parse()
