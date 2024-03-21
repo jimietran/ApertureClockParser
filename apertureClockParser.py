@@ -57,11 +57,8 @@ class apertureClockParser:
             self.data = json.load(file)
         self.output_file = output_file
 
-    def nested_dictionary(self):
-        return defaultdict(self.nested_dictionary)
-
     def parse(self):
-        employees = self.nested_dictionary()
+        employees = {}
         for employee in self.data['employees']:
             employees[employee["id"]] = {"employee_id": employee["id"],
                                          "first_name": employee["first_name"],
