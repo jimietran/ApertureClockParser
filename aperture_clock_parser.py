@@ -33,19 +33,18 @@ def calculate_hours_per_time_period(start_time, end_time):
 
 
 def convert_datetime(date):
-    dt = datetime.strptime(date, '%Y-%m-%d %H:%M:%S')
-    return dt
+    return datetime.strptime(date, '%Y-%m-%d %H:%M:%S')
 
 
 def split_into_separate_days(start_date, end_date):
     if end_date.date() > start_date.date():
-        days = [(start_date, start_date.replace(hour=23, minute=59, second=59))]
+        separated_days = [(start_date, start_date.replace(hour=23, minute=59, second=59))]
         next_day = start_date + timedelta(days=1)
         while next_day.date() < end_date.date():
-            days.append((next_day.replace(hour=0, minute=0, second=0), next_day.replace(hour=23, minute=59, second=59)))
+            separated_days.append((next_day.replace(hour=0, minute=0, second=0), next_day.replace(hour=23, minute=59, second=59)))
             next_day += timedelta(days=1)
-        days.append((end_date.replace(hour=0, minute=0, second=0), end_date))
-        return days
+        separated_days.append((end_date.replace(hour=0, minute=0, second=0), end_date))
+        return separated_days
     else:
         return [(start_date, end_date)]
 
